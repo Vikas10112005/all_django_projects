@@ -1,18 +1,12 @@
 from django.shortcuts import render, redirect
 
+from .base_ctl import BaseCtl
 from ..models import Role
 from ..service.role_service import RoleService
 from ..utility.data_validator import DataValidator
 
 
-class RoleCtl:
-
-    def __init__(self):
-        self.form = {}
-        self.form['id'] = 0
-        self.form['message'] = ''
-        self.form['error'] = False
-        self.form['input_error'] = {}
+class RoleCtl(BaseCtl):
 
     def input_validation(self, request):
         input_error = self.form.get("input_error")
@@ -41,13 +35,13 @@ class RoleCtl:
         self.form['name'] = obj.name
         self.form['description'] = obj.description
 
-    def display(self, request, operation='', id=0):
-        if operation == 'edit' and id > 0:
-            role = RoleService().get(id)
+    def display(self, request, params = {}):
+        if params['operation'] == 'edit' and params['id'] > 0:
+            role = self.get_service().get(params['id'])
             self.model_to_form(role)
-        return render(request, 'role.html', {'form': self.form})
+        return render(request, self.get_template(), {'form': self.form})
 
-    def submit(self, request):
+    def submit(self, request,params = {}):
 
         operation = request.POST.get('operation', '')
 
@@ -56,11 +50,11 @@ class RoleCtl:
             self.request_to_form(request)
 
             if self.input_validation(request):
-                return render(request, 'role.html', {'form': self.form})
+                return render(request, self.get_template(), {'form': self.form})
 
             try:
                 role = self.form_to_model(Role())
-                RoleService().save(role)
+                self.get_service().save(role)
                 if self.form['id'] > 0:
                     self.form['message'] = 'Role update Successfully...!!!'
                     self.form['error'] = False
@@ -73,10 +67,16 @@ class RoleCtl:
                 self.form['message'] = str(e)
                 self.form['error'] = True
 
-            return render(request, 'role.html', {'form': self.form})
+            return render(request,self.get_template(), {'form': self.form})
 
         elif operation == "reset":
             return redirect('/ors/Role/')
 
         elif operation == "list":
             return redirect('/ors/RoleList/')
+
+    def get_service(self):
+        return RoleService()
+
+    def get_template(self):
+        return 'role.html'

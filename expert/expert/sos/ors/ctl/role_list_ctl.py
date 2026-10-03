@@ -1,32 +1,24 @@
 from django.shortcuts import render, redirect
+
+from .base_ctl import BaseCtl
 from ..service.role_service import RoleService
 
 
-class RoleListCtl:
-
-    def __init__(self):
-        self.form = {}
-        self.form['id'] = 0
-        self.form['message'] = ''
-        self.form['error'] = False
-        self.form['input_error'] = {}
-        self.form['page_no'] = 1
-        self.form['page_size'] = 5
-        self.form['list'] = []
+class RoleListCtl(BaseCtl):
 
     def request_to_form(self, request):
         self.form['name'] = request.POST.get('name')
 
-    def display(self, request, operation='', id=0):
-        if operation == 'delete':
-            RoleService().delete(id)
+    def display(self, request,params = {}):
+        if params['operation'] == 'delete' and params['id'] > 0:
+            self.get_service().delete(params['id'])
             return redirect('/ors/RoleList/')
 
-        role_list = RoleService().search(self.form)
+        role_list = self.get_service().search(self.form)
         self.form['list'] = role_list
-        return render(request, "rolelist.html", {"form": self.form})
+        return render(request, self.get_template(), {"form": self.form})
 
-    def submit(self, request):
+    def submit(self, request,params = {}):
 
         self.request_to_form(request)
 
@@ -39,7 +31,13 @@ class RoleListCtl:
         if request.POST.get('operation', '') == "search":
             self.form['page_no'] = 1
 
-        role_list = RoleService().search(self.form)
+        role_list = self.get_service().search(self.form)
         self.form['list'] = role_list
 
-        return render(request, "rolelist.html", {"form": self.form})
+        return render(request, self.get_template(), {"form": self.form})
+
+    def get_service(self):
+        return RoleService()
+
+    def get_template(self):
+        return 'rolelist.html'

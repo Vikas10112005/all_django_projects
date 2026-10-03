@@ -1,17 +1,11 @@
 from django.shortcuts import render, redirect
 
+from .base_ctl import BaseCtl
 from ..service.user_service import UserService
 from ..utility.data_validator import DataValidator
 
 
-class LoginCtl:
-
-    def __init__(self):
-        self.form = {}
-        self.form['id'] = 0
-        self.form['message'] = ''
-        self.form['error'] = False
-        self.form['input_error'] = {}
+class LoginCtl(BaseCtl):
 
     def request_to_form(self, request):
         self.form['login_id'] = request.POST.get('loginId')
@@ -28,19 +22,19 @@ class LoginCtl:
             input_error['error'] = True
         return input_error['error']
 
-    def display(self, request):
-        return render(request, 'login.html', {'form': self.form})
+    def display(self, request,params = {}):
+        return render(request,self.get_template(), {'form': self.form})
 
-    def submit(self, request):
+    def submit(self, request, params = {}):
         operation = request.POST.get('operation', '')
 
         if operation == "signIn":
             self.request_to_form(request)
 
             if self.input_validation(request):
-                return render(request, 'login.html', {'form': self.form})
+                return render(request,self.get_template(), {'form': self.form})
 
-            user_data = UserService().authenticate(self.form['login_id'], self.form['password'])
+            user_data = self.get_service().authenticate(self.form['login_id'], self.form['password'])
 
             if user_data:
                 request.session['first_name'] = user_data.first_name
@@ -50,7 +44,13 @@ class LoginCtl:
                 self.form['message'] = 'Login ID & Password Invalid'
                 self.form['error'] = True
 
-            return render(request, 'login.html', {'form': self.form})
+            return render(request,self.get_template(), {'form': self.form})
 
         if operation == "signUp":
             return redirect('/ors/Registration/')
+
+    def get_service(self):
+         return UserService()
+
+    def get_template(self):
+        return 'login.html'

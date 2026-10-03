@@ -19,22 +19,7 @@ def user_logout(request):
     return redirect('/ors/Login/')
 
 
-def action(request, page):  # page = Registration
-    ctl_name = page + "Ctl()"  # ctl_name = "RegistrationCtl()"
-    ctl_obj = eval(ctl_name)  # convrt string to object
-
-    if request.method == "GET":
-        return ctl_obj.display(request)
-
-    if request.method == "POST":
-        return ctl_obj.submit(request)
-
-def action_operation_id(request,page,operation='',id=0):
+def action(request, page, operation='', id=0):
     ctl_name = page + "Ctl()"
     ctl_obj = eval(ctl_name)
-
-    if request.method =="GET":
-        return ctl_obj.display(request,operation,id)
-
-    if request.method == "POST":
-        return ctl_obj.submit(request)
+    return ctl_obj.execute(request, params={'operation': operation, 'id': id})

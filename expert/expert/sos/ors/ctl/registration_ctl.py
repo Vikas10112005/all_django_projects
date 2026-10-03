@@ -1,18 +1,12 @@
 from django.shortcuts import render, redirect
 
+from .base_ctl import BaseCtl
 from ..models import User
 from ..service.user_service import UserService
 from ..utility.data_validator import DataValidator
 
 
-class RegistrationCtl:
-
-    def __init__(self):
-        self.form = {}
-        self.form['id'] = 0
-        self.form['message'] = ''
-        self.form['error'] = False
-        self.form['input_error'] = {}
+class RegistrationCtl(BaseCtl):
 
     def input_validation(self, request):
         input_error = self.form.get("input_error")
@@ -56,26 +50,32 @@ class RegistrationCtl:
         obj.address = self.form['address']
         return obj
 
-    def display(self, request):
-        return render(request, 'registration.html', {'form': self.form})
+    def display(self, request,params = {}):
+        return render(request, self.get_template(), {'form': self.form})
 
-    def submit(self, request):
+    def submit(self, request,params = {}):
         if request.POST.get('operation', '') == "signUp":
 
             self.request_to_form(request)
 
             if self.input_validation(request):
-                return render(request, 'registration.html', {'form': self.form})
+                return render(request, self.get_template(), {'form': self.form})
 
             try:
                 user = self.form_to_model(User())
-                UserService().save(user)
+                self.get_service().save(user)
                 self.form['message'] = 'User Registration Successfully...!!!'
                 self.form['error'] = False
             except Exception as e:
                 self.form['message'] = str(e)
                 self.form['error'] = True
-            return render(request, 'registration.html', {'form': self.form})
+            return render(request, self.get_template(), {'form': self.form})
 
         if request.POST.get('operation', '') == "reset":
             return redirect('/ors/Registration/')
+
+    def get_service(self):
+         return UserService()
+
+    def get_template(self):
+        return 'registration.html'
