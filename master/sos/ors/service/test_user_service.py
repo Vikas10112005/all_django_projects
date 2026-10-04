@@ -150,9 +150,9 @@ def test_search():
 
 
 #test_save()
-#test_update()
+# test_update()
 #test_delete()
 #test_get()
 #test_find_by_login()
-test_authenticate()
+# test_authenticate()
 #test_search()
